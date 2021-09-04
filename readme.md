@@ -226,3 +226,13 @@ https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/learn/lect
 
 No Resources Found?
 If you have deployed your issuer and certificate manifests to GCP and you are getting No Resources Found when running kubectl get certificates, then continue on to the next lecture to create and deploy the Ingress manifest. Deploying the updated Ingress should trigger the certificate to be issued.
+
+
+Required Update for the HTTPS Ingress
+In the upcoming lecture, we need to make one small change to one of the annotations:
+
+> certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+
+change to:
+
+> cert-manager.io/cluster-issuer: "letsencrypt-prod"
