@@ -39,9 +39,6 @@ You can also get an iv undefined error if you've passed the wrong repo to the fi
 
 
 
-
-
-
 In the upcoming lecture, we will be adding a script to our .travis.yml file. Similar to our previous projects that ran tests using Travis, we need to make sure that the tests exit after running and don't cause our builds to fail.
 
 Make sure to change this script:
