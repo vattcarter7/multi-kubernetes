@@ -111,3 +111,118 @@ Go to Next lecture294. Helm Setup
 Quick Note about the Default Backend
 In the next lecture, you will see the Services dashboard showing an ingress controller and default backend. A default backend no longer ships with ingress-nginx, so, if you only see a controller and you get a 404 Not Found when visiting the IP address, this is perfectly expected.
 
+
+
+
+
+Required Updates for Cert Manager Install
+In the upcoming lecture, we will be installing the Cert Manager using Helm on Google Cloud. There have been some breaking changes introduced with the latest versions of Cert Manager, so we will need to do a few things differently.
+
+Instead of the installation instructions given at around 1:20 in the video, we will complete these steps in the GCP Cloud Shell:
+
+1. Create the namespace for cert-manager:
+
+> kubectl create namespace cert-manager
+
+2. Add the Jetstack Helm repository
+
+> helm repo add jetstack https://charts.jetstack.io
+
+3. Update your local Helm chart repository cache:
+
+> helm repo update
+
+4. Install the cert-manager Helm chart:
+
+> helm install \
+    cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --version v1.2.0 \
+    --create-namespace
+5. Install the CRDs:
+> kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.crds.yaml
+
+Official docs for reference:
+
+https://cert-manager.io/docs/installation/kubernetes/#installing-with-helm
+
+
+
+
+
+
+Required Update for Issuer
+In the upcoming lecture, the Issuer manifest will need a few small changes per these docs:
+
+https://docs.cert-manager.io/en/latest/tasks/issuers/setup-acme/index.html#creating-a-basic-acme-issuer
+
+1. Update apiVersion:
+
+apiVersion: cert-manager.io/v1
+
+2. Add a solvers property:
+
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+The full issuer.yaml manifest can be found below:
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "test@test.com"
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+
+
+
+
+
+Required Update for the Certificate
+In the upcoming lecture, a few minor changes are required per the official docs:
+
+1. Update the API version used:
+
+apiVersion: cert-manager.io/v1
+
+2. Remove the acme challenge from the certificate spec.
+
+The full updated Certificate manifest can be found below:
+
+apiVersion: cert-manager.io/v1
+ 
+kind: Certificate
+metadata:
+  name: yourdomain-com-tls
+spec:
+  secretName: yourdomain-com
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: yourdomain.com
+  dnsNames:
+    - yourdomain.com
+    - www.yourdomain.com
+
+
+QA thread for reference with some troubleshooting steps (see Joseph's post near the bottom)
+
+https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/learn/lecture/11628364#questions/8558842/
+
+
+
+
+
+
+
+No Resources Found?
+If you have deployed your issuer and certificate manifests to GCP and you are getting No Resources Found when running kubectl get certificates, then continue on to the next lecture to create and deploy the Ingress manifest. Deploying the updated Ingress should trigger the certificate to be issued.
